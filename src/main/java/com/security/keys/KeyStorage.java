@@ -1,17 +1,17 @@
-package com.security;
+package com.security.keys;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-public class Keys {
+public class KeyStorage {
     PrivateKey rsaPrivateKey;
     PrivateKey dsaPrivateKey;
     PublicKey rsaPublicKey;
     PublicKey dsaPublicKey;
     SecretKey aesKey;
 
-    public Keys(PrivateKey rsaPrivateKey, PrivateKey dsaPrivateKey, PublicKey rsaPublicKey, PublicKey dsaPublicKey, SecretKey aesKey) {
+    public KeyStorage(PrivateKey rsaPrivateKey, PrivateKey dsaPrivateKey, PublicKey rsaPublicKey, PublicKey dsaPublicKey, SecretKey aesKey) {
         this.rsaPrivateKey = rsaPrivateKey;
         this.dsaPrivateKey = dsaPrivateKey;
         this.rsaPublicKey = rsaPublicKey;

@@ -1,4 +1,4 @@
-package com.httpLike.config;
+package com.httpLike.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

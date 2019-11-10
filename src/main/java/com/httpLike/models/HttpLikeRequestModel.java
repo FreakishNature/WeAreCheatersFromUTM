@@ -1,4 +1,4 @@
-package com.model;
+package com.httpLike.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,6 +15,6 @@ public class HttpLikeRequestModel {
     String protocol;
     String route;
     String method;
-    HashMap<String,String> headers;
+    HashMap<String, String> headers;
     String body;
 }

@@ -19,6 +19,6 @@ public class ServerException extends IOException {
     }
 
     public static ServerException receivingResponseException(){
-        return new ServerException("Has been occurred problem while processing response");
+        return new ServerException("An error has occurred during response processing");
     }
 }

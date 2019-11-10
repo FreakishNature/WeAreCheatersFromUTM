@@ -1,4 +1,4 @@
-package com.httpLike.config;
+package com.httpLike.responses;
 
 public class StandardResponses {
     static public HttpLikeStandardResponse invalidHttpLikeFormat = new HttpLikeStandardResponse(
@@ -14,7 +14,4 @@ public class StandardResponses {
     static public HttpLikeStandardResponse notFound = new HttpLikeStandardResponse(
             "Not found.", 404
     );
-
-
-
 }

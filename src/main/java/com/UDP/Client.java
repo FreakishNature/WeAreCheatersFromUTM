@@ -1,11 +1,11 @@
 package com.UDP;
 
 import com.UDP.exceptions.ServerException;
-import com.model.Request;
-import com.security.ClientKeys;
-import com.security.Keys;
-import com.security.PacketProcessor;
-import com.security.ServerKeys;
+import com.UDP.processors.PacketProcessor;
+import com.UDP.models.Request;
+import com.security.keys.ClientKeys;
+import com.security.keys.KeyStorage;
+import com.security.keys.ServerKeys;
 
 import java.io.IOException;
 import java.net.*;
@@ -13,8 +13,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
 public class Client {
-    Logger logger = Logger.getLogger(Client.class.getName());
-    static public Keys keys = new Keys(
+    Logger logger = Logger.getLogger(this.getClass().getName());
+    static public KeyStorage keyStorage = new KeyStorage(
             ClientKeys.rsaPrivateKey,
             ClientKeys.dsaPrivateKey,
             ServerKeys.rsaPublicKey,
@@ -22,15 +22,10 @@ public class Client {
             ClientKeys.aesKey
     );
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        Client client = new Client("localhost",4000);
-        System.out.println(client.sendEcho("hello",1));
-    }
     private DatagramSocket socket;
     private InetAddress address;
     int port;
     private byte[] buf;
-
 
     public Client(String host, int port) throws SocketException, UnknownHostException {
         this.port = port;
@@ -38,9 +33,9 @@ public class Client {
         address = InetAddress.getByName(host);
     }
 
-    public String sendEcho(String msg,int attempt) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+    public String sendEcho(String msg, int attempt) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
 
-        buf = PacketProcessor.preparePacket(msg,attempt,keys);
+        buf = PacketProcessor.preparePacket(msg, attempt, keyStorage);
 
         DatagramPacket packet
                 = new DatagramPacket(buf, buf.length, address, this.port);
@@ -51,21 +46,21 @@ public class Client {
         logger.info("Waiting for server response");
         String responseMsg;
 
-        try{
-            Request request = PacketProcessor.receiveAndDecrypt(socket,packet,buf,keys);
+        try {
+            Request request = PacketProcessor.receiveAndDecrypt(socket, packet, buf, keyStorage);
             logger.info("Response received");
             responseMsg = request.getMessage();
 
-            if(request.getMessage().equals(Server.errorMessage) || !PacketProcessor.validatePacket(request)){
+            if (request.getMessage().equals(Server.errorMessage) || !PacketProcessor.validatePacket(request)) {
                 throw ServerException.receivingResponseException();
             }
 
-        }catch (ServerException e){
+        } catch (ServerException e) {
             logger.warning(e.getMessage() + " Attempt : " + attempt);
-            if(attempt >= 5 || attempt < 0){
+            if (attempt >= 5 || attempt < 0) {
                 return e.getMessage();
             }
-            responseMsg = sendEcho(msg,attempt + 1);
+            responseMsg = sendEcho(msg, attempt + 1);
         }
 
 
@@ -74,5 +69,10 @@ public class Client {
 
     public void close() {
         socket.close();
+    }
+
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+        Client client = new Client("localhost", 4000);
+        System.out.println(client.sendEcho("hello", 1));
     }
 }

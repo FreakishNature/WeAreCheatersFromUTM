@@ -1,4 +1,4 @@
-package com.model;
+package com.httpLike.models;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -16,12 +16,12 @@ import java.util.HashMap;
 public class HttpLikeResponseModel {
     private static ObjectMapper mapper = new ObjectMapper();
     private String protocol;
-    HashMap<String,String> headers;
+    HashMap<String, String> headers;
     private String body;
     private String message;
     private int code;
 
-    public String toString(){
+    public String toString() {
         try {
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {

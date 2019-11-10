@@ -1,6 +1,11 @@
 package com.security;
 
-import com.model.EncryptedData;
+import com.security.algorithms.AES;
+import com.security.algorithms.DSA;
+import com.security.algorithms.RSA;
+import com.security.keys.ClientKeys;
+import com.security.keys.ServerKeys;
+import com.security.models.EncryptedData;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,9 +16,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
 
-public class CryptoConverter {
-//    private static String aesKeyEncrypted;
-//    private static byte[] signature;
+public class SecurityManager {
 
     static public String getHashSum(String str) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -56,22 +59,14 @@ public class CryptoConverter {
         return null;
     }
 
-    public static String decrypt(String s) {
-        return "11";
-    }
-
-    public static String encrypt(String s) {
-        return "22";
-    }
-
     public static void main(String[] args) {
-        String a = "test";
+        String a = "test server";
 
         EncryptedData cipherText = encrypt(a, ServerKeys.aesKey, ServerKeys.rsaPublicKey, ServerKeys.dsaPrivateKey);
         String plainText = decrypt(cipherText, ClientKeys.rsaPrivateKey, ClientKeys.dsaPublicKey);
         System.out.println(plainText);
 
-        a = "123";
+        a = "test client";
 
         cipherText = encrypt(a, ClientKeys.aesKey, ClientKeys.rsaPublicKey, ClientKeys.dsaPrivateKey);
         plainText = decrypt(cipherText, ServerKeys.rsaPrivateKey, ServerKeys.dsaPublicKey);

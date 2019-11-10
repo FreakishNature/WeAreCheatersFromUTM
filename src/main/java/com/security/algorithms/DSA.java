@@ -1,4 +1,4 @@
-package com.security;
+package com.security.algorithms;
 
 import java.security.*;
 import java.util.Base64;

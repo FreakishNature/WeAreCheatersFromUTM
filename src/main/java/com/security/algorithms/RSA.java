@@ -1,4 +1,4 @@
-package com.security;
+package com.security.algorithms;
 
 import javax.crypto.Cipher;
 import java.io.InputStream;

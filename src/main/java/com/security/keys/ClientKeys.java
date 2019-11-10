@@ -1,4 +1,8 @@
-package com.security;
+package com.security.keys;
+
+import com.security.algorithms.AES;
+import com.security.algorithms.DSA;
+import com.security.algorithms.RSA;
 
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
@@ -10,7 +14,6 @@ public class ClientKeys {
     static public PublicKey rsaPublicKey;
     static public PublicKey dsaPublicKey;
     static public SecretKey aesKey;
-
 
     static {
         try {
