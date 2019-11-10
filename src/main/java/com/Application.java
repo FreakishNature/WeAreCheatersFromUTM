@@ -1,32 +1,26 @@
 package com;
 
-import com.security.ByteConverter;
+import com.UDP.Client;
+import com.UDP.Server;
+import com.security.ServerKeys;
+import com.utils.ByteConverter;
 import com.security.CryptoConverter;
 import com.security.PacketProcessor;
-import com.security.Request;
+import com.model.Request;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 public class Application {
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        byte[] buf = PacketProcessor.preparePacket("test",0);
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+        byte[] buf = PacketProcessor.preparePacket("test",0, Server.keys);
 
+        Request request = PacketProcessor.unpackPacket(ByteConverter.toString(buf), Client.keys);
 
-        String packetDecrypted = CryptoConverter
-                .decrypt(ByteConverter.toString(buf));
+        System.out.println(request.getMessage());
+        System.out.println(request.getAttempt());
+        System.out.println(request.getHashSum());
 
-        assert packetDecrypted != null;
-        Request request = PacketProcessor.requestFromPacket(packetDecrypted);
-        request.setHashSum("123");
-        boolean isValidPacket = PacketProcessor.validatePacket(request);
-
-        if(!isValidPacket){
-            System.out.println("Is not valid packet");
-            String errorMessage = "Message was send badly";
-            byte[] response = PacketProcessor.preparePacket(errorMessage, request.getAttempt() + 1);
-            System.out.println(CryptoConverter.decrypt(ByteConverter.toString(response)));
-        }
 
     }
 }

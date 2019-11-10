@@ -1,5 +1,7 @@
 package com.security;
 
+import com.model.EncryptedData;
+
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigInteger;
@@ -10,13 +12,8 @@ import java.security.PublicKey;
 import java.util.Base64;
 
 public class CryptoConverter {
-    static PrivateKey rsaPrivateKey;
-    static PrivateKey dsaPrivateKey;
-    static PublicKey rsaPublicKey;
-    static PublicKey dsaPublicKey;
-    static SecretKey aesKey;
-    static String aesKeyEncrypted;
-    static byte[] signature;
+//    private static String aesKeyEncrypted;
+//    private static byte[] signature;
 
     static public String getHashSum(String str) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -25,28 +22,16 @@ public class CryptoConverter {
 
         return bi.toString(16);
     }
-
-    static {
-        try {
-            rsaPrivateKey = RSA.getKeyPair().getPrivate();
-            rsaPublicKey = RSA.getKeyPair().getPublic();
-            dsaPrivateKey = DSA.generateKeyPair(999).getPrivate();
-            dsaPublicKey = DSA.generateKeyPair(999).getPublic();
-            aesKey = AES.getSecretKey();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static String encrypt(String s, SecretKey aesKey, PublicKey rsaPublicKey, PrivateKey dsaPrivateKey) {
+    public static EncryptedData encrypt(String s, SecretKey aesKey, PublicKey rsaPublicKey, PrivateKey dsaPrivateKey) {
         try {
             String cipherText = AES.encrypt(s, aesKey);
-            aesKeyEncrypted = RSA.encrypt(
+            String aesKeyEncrypted = RSA.encrypt(
                     Base64.getEncoder().encodeToString(aesKey.getEncoded()),
                     rsaPublicKey
             );
-            signature = DSA.sign(cipherText, dsaPrivateKey);
-            return cipherText;
+            byte[] signature = DSA.sign(cipherText, dsaPrivateKey);
+
+            return new EncryptedData(cipherText,signature,aesKeyEncrypted);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -54,15 +39,15 @@ public class CryptoConverter {
     }
 
 
-    public static String decrypt(String s, String aesKeyEncrypted, PrivateKey rsaPrivateKey, PublicKey dsaPublicKey, byte[] signature) {
+    public static String decrypt(EncryptedData encryptedData, PrivateKey rsaPrivateKey, PublicKey dsaPublicKey) {
         try {
-            if (DSA.verify(s, dsaPublicKey, signature)) {
-                String aesKeyDecrypted = RSA.decrypt(aesKeyEncrypted, rsaPrivateKey);
+            if (DSA.verify(encryptedData.getCipherText(), dsaPublicKey, encryptedData.getSignature())) {
+                String aesKeyDecrypted = RSA.decrypt(encryptedData.getAesKeyEncrypted(), rsaPrivateKey);
 
                 byte[] aesKeyDecoded = Base64.getDecoder().decode(aesKeyDecrypted);
                 SecretKey aesKey = new SecretKeySpec(aesKeyDecoded, 0, aesKeyDecoded.length, "AES");
 
-                return AES.decrypt(s, aesKey);
+                return AES.decrypt(encryptedData.getCipherText(), aesKey);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -81,10 +66,10 @@ public class CryptoConverter {
     public static void main(String[] args) {
         String a = "test";
 
-        String cipherText = encrypt(a, aesKey, rsaPublicKey, dsaPrivateKey);
-
-        String plainText = decrypt(cipherText, aesKeyEncrypted, rsaPrivateKey, dsaPublicKey, signature);
-        System.out.println(plainText);
+//        String cipherText = encrypt(a, aesKey, rsaPublicKey, dsaPrivateKey);
+//
+//        String plainText = decrypt(cipherText, aesKeyEncrypted, rsaPrivateKey, dsaPublicKey, signature);
+//        System.out.println(plainText);
     }
 
 }

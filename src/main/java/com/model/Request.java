@@ -1,4 +1,4 @@
-package com.security;
+package com.model;
 
 public class Request {
     private String hashSum;
