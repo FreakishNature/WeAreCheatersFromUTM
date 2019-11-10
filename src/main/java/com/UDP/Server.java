@@ -14,7 +14,7 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
-public class Server extends Thread {
+public class Server {
     Logger logger = Logger.getLogger(this.getClass().getName());
     private RequestProcessor requestProcessor;
 
@@ -27,7 +27,6 @@ public class Server extends Thread {
     );
 
     public static String errorMessage = "Message was send badly";
-    public static String okMessage = "Ok";
     private DatagramSocket socket;
 
     public Server(int port, RequestProcessor requestProcessor) throws SocketException {
@@ -35,7 +34,7 @@ public class Server extends Thread {
         this.requestProcessor = requestProcessor;
     }
 
-    public void run() {
+    public void run() throws IOException, ClassNotFoundException, NoSuchAlgorithmException {
         logger.info("Server started");
         try {
             while (true) {
@@ -44,23 +43,24 @@ public class Server extends Thread {
                 DatagramPacket packet
                         = new DatagramPacket(buf, buf.length);
 
-                Request request = PacketProcessor.receiveAndDecrypt(socket, packet, buf, keyStorage);
+                new Thread(()->{
+                    Request request;
+                    try {
+                        request = PacketProcessor.receiveAndDecrypt(socket, packet, buf, keyStorage);
 
-                PacketProcessor.validateAndSend(
-                        socket,
-                        request,
-                        packet,
-                        requestProcessor.processRequest(request.getMessage()),
-                        keyStorage
-                );
+                        PacketProcessor.validateAndSend(
+                                socket,
+                                request,
+                                packet,
+                                requestProcessor.processRequest(request.getMessage()),
+                                keyStorage
+                        );
+                    } catch (IOException | NoSuchAlgorithmException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                });
 
             }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
         } finally {
             socket.close();
         }

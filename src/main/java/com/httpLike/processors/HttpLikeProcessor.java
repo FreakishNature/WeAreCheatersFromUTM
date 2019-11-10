@@ -3,7 +3,6 @@ package com.httpLike.processors;
 import com.UDP.processors.RequestProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.httpLike.responses.StandardResponses;
 import com.httpLike.models.HttpLikeRequestModel;
 import com.httpLike.models.HttpLikeResponseModel;
 
@@ -26,9 +25,9 @@ public class HttpLikeProcessor implements RequestProcessor {
             return new HttpLikeResponseModel(
                     httpLikeVersion,
                     new HashMap<>(),
-                    StandardResponses.invalidHttpLikeFormat.getMessage(),
-                    StandardResponses.invalidHttpLikeFormat.getMessage(),
-                    StandardResponses.invalidHttpLikeFormat.getCode()
+                    e.getMessage(),
+                    "Invalid HttpLike format.",
+                    406
             ).toString();
         }
 
@@ -36,21 +35,18 @@ public class HttpLikeProcessor implements RequestProcessor {
             return new HttpLikeResponseModel(
                     httpLikeVersion,
                     new HashMap<>(),
-                    StandardResponses.noSuchMethod.getMessage(),
-                    StandardResponses.noSuchMethod.getMessage(),
-                    StandardResponses.noSuchMethod.getCode()
+                    "Method " + requestModel.getMethod(),
+                    "No such method",
+                    405
             ).toString();
         }
 
 
-        HttpLikeResponseModel httpLikeResponseModel = processRequest(requestModel);
+        HttpLikeResponseModel httpLikeResponseModel = processor.processRequest(requestModel);
 
         return httpLikeResponseModel.toString();
     }
 
-    HttpLikeResponseModel processRequest(HttpLikeRequestModel request) {
-        return new HttpLikeResponseModel();
-    }
 
     public HttpLikeProcessor(HttpLikeRequestProcessor processor) {
         this.processor = processor;
