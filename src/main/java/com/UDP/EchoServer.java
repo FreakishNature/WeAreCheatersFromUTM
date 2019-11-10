@@ -15,48 +15,64 @@ import java.security.NoSuchAlgorithmException;
 
 public class EchoServer {
 
+    public static String errorMessage = "Message was send badly";
+    public static String okMessage = "Ok";
     private DatagramSocket socket;
-    private byte[] buf = new byte[1024];
 
     public EchoServer(int port) throws SocketException {
         socket = new DatagramSocket(port);
     }
-    private byte[] preparePacket(String msg){
-        return new byte[10];
 
-    }
+
+
 
     public void run() throws IOException, NoSuchAlgorithmException {
-        while (true) {
-            DatagramPacket packet
-                    = new DatagramPacket(buf, buf.length);
-            socket.receive(packet);
+        try {
+            while (true) {
+                byte[] buf = new byte[1024];
 
-            InetAddress address = packet.getAddress();
-            int port = packet.getPort();
-            packet = new DatagramPacket(buf, buf.length, address, port);
+                DatagramPacket packet
+                        = new DatagramPacket(buf, buf.length);
 
-            // processing client request
-            String received
-                    = new String(packet.getData(), 0, packet.getLength());
+                String packetDecrypted = PacketProcessor.receiveAndDecrypt(socket,packet,buf);
 
-            String packetDecrypted = CryptoConverterShaRsa
-                    .decrypt(ByteConverter.toString(buf));
+                Request request = PacketProcessor.requestFromPacket(packetDecrypted);
+                String responseMsg = processRequestMessage(request.getMessage());
+                synchronized (this){
+                    PacketProcessor.validateAndSend(socket, request, packet,
+                            responseMsg
+                    );
+                }
 
-            assert packetDecrypted != null;
-            Request request = PacketProcessor.requestFromPacket(packetDecrypted);
-            boolean isValidPacket = PacketProcessor.validatePacket(request);
+                // resending if error
+                do{
+                    synchronized (this){
+                        packetDecrypted = PacketProcessor.receiveAndDecrypt(socket,packet,buf);
+                    }
 
-            if(!isValidPacket){
-                String errorMessage = "Message was send badly";
-                PacketProcessor.preparePacket(errorMessage,request.getAttempt() + 1);
+                    request = PacketProcessor.requestFromPacket(packetDecrypted);
+
+                    if(!request.getMessage().equals(okMessage)){
+                        synchronized (this){
+                            PacketProcessor.validateAndSend(socket, request, packet, responseMsg);
+                        }
+                    } else{
+                        buf = PacketProcessor.preparePacket(okMessage,0);
+                        packet.setData(buf);
+                        socket.send(packet);
+                    }
+                }while (request.getAttempt() < 5);
             }
-
-            if (received.equals("end")) {
-                break;
-            }
-            socket.send(packet);
+        }finally {
+            socket.close();
         }
-        socket.close();
+    }
+
+    private String processRequestMessage(String message) {
+        return "good response";
+    }
+
+    public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
+        new EchoServer(4000).run();
     }
 }
