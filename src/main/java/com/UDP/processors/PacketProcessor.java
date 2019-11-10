@@ -2,6 +2,7 @@ package com.UDP.processors;
 
 import com.UDP.Server;
 import com.UDP.exceptions.ServerException;
+import com.google.common.base.Splitter;
 import com.security.models.EncryptedData;
 import com.UDP.models.Request;
 import com.security.SecurityManager;
@@ -15,6 +16,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PacketProcessor {
     private static Logger logger = Logger.getLogger(PacketProcessor.class.getName());
@@ -59,23 +64,72 @@ public class PacketProcessor {
                 ? PacketProcessor.preparePacket(Server.errorMessage,0, keyStorage)
                 : PacketProcessor.preparePacket(message,0, keyStorage);
 
-        packet.setData(buf);
+        sendPacketByChunks(packet,socket,buf);
+    }
+    public static String receivePacketByChunks(DatagramPacket packet, DatagramSocket socket,byte[] buf) throws IOException {
+        ArrayList<String> chunks = new ArrayList<>();
 
+        boolean isReceiving = true;
+        do{
+            socket.receive(packet);
+            if(packet.getLength() != 0){
+                chunks.add(ByteConverter.toString(buf));
+            } else { isReceiving = false; }
+
+                buf = new byte[2048];
+
+            InetAddress address = packet.getAddress();
+            int port = packet.getPort();
+            packet = new DatagramPacket(buf, buf.length, address, port);
+            logger.info("Received message from " + address + ":" + port);
+
+        }while(isReceiving);
+
+        ArrayList<String> chunksSorted = new ArrayList<>(chunks.size());
+        chunks.forEach(c -> chunksSorted.add(""));
+
+        chunks.forEach(chunk -> {
+            String[] splitChunk = chunk.split("<>");
+
+            int index = Integer.parseInt(splitChunk[0]);
+            String chunkData = splitChunk[1];
+            chunksSorted.set(index,chunkData);
+        });
+
+        return String.join("", chunksSorted);
+    }
+    public static void sendPacketByChunks(DatagramPacket packet, DatagramSocket socket,byte[] buf) throws IOException {
+        ArrayList<String> splitText = new ArrayList<>();
+        Splitter.fixedLength(2048 - 8).split(ByteConverter.toString(buf)).forEach(splitText::add);
+
+        for(int i = 0 ; i < splitText.size() ; i++){
+            String index = (i+"");
+            splitText.set(i,new String(new char[6 - index.length()]).replace('\0','0') + index + "<>" + splitText.get(i));
+        }
+
+
+        for(int i = 0 ; i < (buf.length % 2048) + 1; i++){
+            byte[] tmp = ByteConverter.toByteArray(splitText.get(i));
+            logger.debug("Sending index - " + i);
+
+            packet.setData(tmp);
+            socket.send(packet);
+        }
+
+//        packet.setLength(0);
+        packet.setData(new byte[0]);
         socket.send(packet);
-
     }
 
     public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, byte[] buf, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
-        socket.receive(packet);
+//        socket.receive(packet);
+//
+//        InetAddress address = packet.getAddress();
+//        int port = packet.getPort();
+//        packet = new DatagramPacket(buf, buf.length, address, port);
 
-        InetAddress address = packet.getAddress();
-        int port = packet.getPort();
-        packet = new DatagramPacket(buf, buf.length, address, port);
+        String received = receivePacketByChunks(packet,socket,buf);
 
-        logger.info("Received message from " + address + ":" + port);
-
-        String received
-                = new String(packet.getData(), 0, packet.getLength());
         logger.debug("Received data : " + received);
         logger.info("Unpacking packet");
 
@@ -96,7 +150,7 @@ public class PacketProcessor {
                     ), // decrypted data
                     Integer.parseInt(receivedSplit[2]) // attempt
             );
-        }catch (IndexOutOfBoundsException e){
+        }catch (IndexOutOfBoundsException | NumberFormatException e){
             throw ServerException.receivingResponseException();
         }
 

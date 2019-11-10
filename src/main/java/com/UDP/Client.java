@@ -45,8 +45,8 @@ public class Client {
                 = new DatagramPacket(buf, buf.length, address, this.port);
 
         logger.info("Sending packet to server");
-        socket.send(packet);
-
+//        socket.send(packet);
+        PacketProcessor.sendPacketByChunks(packet,socket,buf);
         logger.info("Waiting for server response");
         String responseMsg;
 
