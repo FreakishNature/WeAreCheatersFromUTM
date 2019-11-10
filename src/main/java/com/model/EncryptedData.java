@@ -1,39 +1,18 @@
 package com.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
 
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class EncryptedData implements Serializable {
     String cipherText;
     byte[] signature;
     String aesKeyEncrypted;
-
-    public EncryptedData(String encryptedData, byte[] signature, String aesKeyEncrypted) {
-        this.cipherText = encryptedData;
-        this.signature = signature;
-        this.aesKeyEncrypted = aesKeyEncrypted;
-    }
-
-    public String getCipherText() {
-        return cipherText;
-    }
-
-    public void setCipherText(String cipherText) {
-        this.cipherText = cipherText;
-    }
-
-    public byte[] getSignature() {
-        return signature;
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
-    }
-
-    public String getAesKeyEncrypted() {
-        return aesKeyEncrypted;
-    }
-
-    public void setAesKeyEncrypted(String aesKeyEncrypted) {
-        this.aesKeyEncrypted = aesKeyEncrypted;
-    }
 }

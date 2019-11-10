@@ -50,16 +50,12 @@ public class PacketProcessor {
         return new Request(packetSplit[0], packetSplit[1], Integer.parseInt(packetSplit[2]));
     }
 
-    public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message,Keys keys) throws IOException, NoSuchAlgorithmException {
-        validateAndSend(socket,request,packet,message,0,keys);
-    }
-    public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message, int errorAttempt,Keys keys) throws NoSuchAlgorithmException, IOException {
+    public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message,Keys keys) throws NoSuchAlgorithmException, IOException {
         boolean isValidCheckSum = PacketProcessor.validatePacket(request);
 
         byte[] buf = !isValidCheckSum
-                ? PacketProcessor.preparePacket(Server.errorMessage,request.getAttempt() + 1,keys)
-                : PacketProcessor.preparePacket(
-                message,errorAttempt,keys);
+                ? PacketProcessor.preparePacket(Server.errorMessage,0,keys)
+                : PacketProcessor.preparePacket(message,0,keys);
 
         packet.setData(buf);
 

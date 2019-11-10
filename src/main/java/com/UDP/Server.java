@@ -10,12 +10,12 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
 public class Server {
     Logger logger = Logger.getLogger(this.getClass().getName());
+    private RequestProcessor requestProcessor;
 
     static public Keys keys = new Keys(
             ServerKeys.rsaPrivateKey,
@@ -29,8 +29,9 @@ public class Server {
     public static String okMessage = "Ok";
     private DatagramSocket socket;
 
-    public Server(int port) throws SocketException {
+    public Server(int port,RequestProcessor requestProcessor) throws SocketException {
         socket = new DatagramSocket(port);
+        this.requestProcessor = requestProcessor;
     }
 
     public void run() throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
@@ -44,7 +45,13 @@ public class Server {
 
                 Request request = PacketProcessor.receiveAndDecrypt(socket,packet,buf,keys);
 
-                PacketProcessor.validateAndSend(socket,request,packet,processRequestMessage(request.getMessage()),keys);
+                PacketProcessor.validateAndSend(
+                        socket,
+                        request,
+                        packet,
+                        requestProcessor.processRequest(request.getMessage()),
+                        keys
+                );
 
             }
         }finally {
@@ -53,11 +60,7 @@ public class Server {
 
     }
 
-    private String processRequestMessage(String message) {
-        return "Bla from server";
-    }
-
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
-        new Server(4000).run();
+//        new Server(4000).run();
     }
 }

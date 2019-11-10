@@ -8,10 +8,7 @@ import com.security.PacketProcessor;
 import com.security.ServerKeys;
 
 import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.security.NoSuchAlgorithmException;
 import java.util.logging.Logger;
 
@@ -27,7 +24,7 @@ public class Client {
 
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
         Client client = new Client("localhost",4000);
-        System.out.println(client.sendEcho("hello",0));
+        System.out.println(client.sendEcho("hello",1));
     }
     private DatagramSocket socket;
     private InetAddress address;
@@ -43,7 +40,7 @@ public class Client {
 
     public String sendEcho(String msg,int attempt) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
 
-        buf = PacketProcessor.preparePacket("Hello server",attempt,keys);
+        buf = PacketProcessor.preparePacket(msg,attempt,keys);
 
         DatagramPacket packet
                 = new DatagramPacket(buf, buf.length, address, this.port);
