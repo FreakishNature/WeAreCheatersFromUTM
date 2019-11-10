@@ -22,6 +22,7 @@ public class CryptoConverter {
 
         return bi.toString(16);
     }
+
     public static EncryptedData encrypt(String s, SecretKey aesKey, PublicKey rsaPublicKey, PrivateKey dsaPrivateKey) {
         try {
             String cipherText = AES.encrypt(s, aesKey);
@@ -31,7 +32,7 @@ public class CryptoConverter {
             );
             byte[] signature = DSA.sign(cipherText, dsaPrivateKey);
 
-            return new EncryptedData(cipherText,signature,aesKeyEncrypted);
+            return new EncryptedData(cipherText, signature, aesKeyEncrypted);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -66,10 +67,15 @@ public class CryptoConverter {
     public static void main(String[] args) {
         String a = "test";
 
-//        String cipherText = encrypt(a, aesKey, rsaPublicKey, dsaPrivateKey);
-//
-//        String plainText = decrypt(cipherText, aesKeyEncrypted, rsaPrivateKey, dsaPublicKey, signature);
-//        System.out.println(plainText);
+        EncryptedData cipherText = encrypt(a, ServerKeys.aesKey, ServerKeys.rsaPublicKey, ServerKeys.dsaPrivateKey);
+        String plainText = decrypt(cipherText, ClientKeys.rsaPrivateKey, ClientKeys.dsaPublicKey);
+        System.out.println(plainText);
+
+        a = "123";
+
+        cipherText = encrypt(a, ClientKeys.aesKey, ClientKeys.rsaPublicKey, ClientKeys.dsaPrivateKey);
+        plainText = decrypt(cipherText, ServerKeys.rsaPrivateKey, ServerKeys.dsaPublicKey);
+        System.out.println(plainText);
     }
 
 }

@@ -14,21 +14,22 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * keytool command:
- * keytool -genseckey -keyalg AES -alias myseckey -keysize 256 -keypass mykeypass -storetype jceks -keystore mystore.jck -storepass mystorepass
+ * SERVER: keytool -genseckey -keyalg AES -alias myseckey -keysize 256 -keypass mykeypass -storetype jceks -keystore aesServerKey.jck -storepass mystorepass
+ * CLIENT: keytool -genseckey -keyalg AES -alias myseckeyclient -keysize 256 -keypass mykeypassclient -storetype jceks -keystore aesClientKey.jck -storepass mystorepassclient
  */
 
 public class AES {
 
-    public static SecretKey getSecretKey() throws KeyStoreException,
+    public static SecretKey getSecretKey(String path, String storepass, String keypass, String alias) throws KeyStoreException,
             IOException, CertificateException, NoSuchAlgorithmException, UnrecoverableEntryException {
 
-        InputStream ins = AES.class.getResourceAsStream("/mystore.jck");
+        InputStream ins = AES.class.getResourceAsStream(path);
 
         KeyStore ks = KeyStore.getInstance("JCEKS");
-        ks.load(ins, "mystorepass".toCharArray());
+        ks.load(ins, storepass.toCharArray());
 
-        SecretKeyEntry entry = (SecretKeyEntry) ks.getEntry("myseckey",
-                new KeyStore.PasswordProtection("mykeypass".toCharArray()));
+        SecretKeyEntry entry = (SecretKeyEntry) ks.getEntry(alias,
+                new KeyStore.PasswordProtection(keypass.toCharArray()));
 
         return entry.getSecretKey();
     }

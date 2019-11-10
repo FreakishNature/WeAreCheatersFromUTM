@@ -19,7 +19,7 @@ public class PacketProcessor {
     private static String separator = "<|>";
     private static String separatorRegex = "<\\|>";
 
-    public static byte[] preparePacket(String msg,int attempt,Keys keys) throws NoSuchAlgorithmException, IOException {
+    public static byte[] preparePacket(String msg, int attempt, Keys keys) throws NoSuchAlgorithmException, IOException {
         logger.info("Starting preparing packet.");
         String hashSum = CryptoConverter.getHashSum(msg);
         logger.info("Calculated hash sum.");
@@ -36,7 +36,6 @@ public class PacketProcessor {
     }
 
 
-
     public static boolean validatePacket(Request request) throws NoSuchAlgorithmException {
         logger.info("Check if hash sum is valid");
         boolean isValidPacket = CryptoConverter.getHashSum(request.getMessage()).equals(request.getHashSum());
@@ -46,7 +45,7 @@ public class PacketProcessor {
         return isValidPacket;
     }
 
-    public static Request requestFromPacket(String packet){
+    public static Request requestFromPacket(String packet) {
         String[] packetSplit = packet.split(separatorRegex);
         return new Request(packetSplit[0], packetSplit[1], Integer.parseInt(packetSplit[2]));
     }
@@ -68,7 +67,7 @@ public class PacketProcessor {
 
     }
 
-    public static Request receiveAndDecrypt(DatagramSocket socket,DatagramPacket packet,byte[] buf,Keys keys) throws IOException, ClassNotFoundException {
+    public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, byte[] buf, Keys keys) throws IOException, ClassNotFoundException {
         socket.receive(packet);
 
         InetAddress address = packet.getAddress();
@@ -82,10 +81,10 @@ public class PacketProcessor {
         logger.debug("Received data : " + received);
         logger.info("Unpacking packet");
 
-        return unpackPacket(received,keys);
+        return unpackPacket(received, keys);
     }
 
-    public static Request unpackPacket(String received,Keys keys) throws IOException, ClassNotFoundException {
+    public static Request unpackPacket(String received, Keys keys) throws IOException, ClassNotFoundException {
         String[] receivedSplit = received.trim().split(separatorRegex);
         Request request;
 

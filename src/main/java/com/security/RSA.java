@@ -9,7 +9,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Key generated with:
- * keytool -genkeypair -alias mykey -storepass s3cr3t -keypass s3cr3t -keyalg RSA -keystore keystore.jks
+ * SERVER: keytool -genkeypair -alias mykey -storepass s3cr3t -keypass s3cr3t -keyalg RSA -keystore rsaServerKeys.jks
+ * CLIENT: keytool -genkeypair -alias mykeyclient -storepass s3cr3tclient -keypass s3cr3tclient -keyalg RSA -keystore rsaClientKeys.jks
  */
 public class RSA {
     public static KeyPair generateKeyPair() throws Exception {
@@ -20,18 +21,18 @@ public class RSA {
         return pair;
     }
 
-    public static KeyPair getKeyPair() throws Exception {
+    public static KeyPair getKeyPair(String path, String keyStorePass, String keyPass, String alias) throws Exception {
 
-        InputStream ins = RSA.class.getResourceAsStream("/keystore.jks");
+        InputStream ins = RSA.class.getResourceAsStream(path);
 
         KeyStore keyStore = KeyStore.getInstance("JCEKS");
-        keyStore.load(ins, "s3cr3t".toCharArray());   //Keystore password
+        keyStore.load(ins, keyStorePass.toCharArray());   //Keystore password
         KeyStore.PasswordProtection keyPassword =       //Key password
-                new KeyStore.PasswordProtection("s3cr3t".toCharArray());
+                new KeyStore.PasswordProtection(keyPass.toCharArray());
 
-        KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("mykey", keyPassword);
+        KeyStore.PrivateKeyEntry privateKeyEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry(alias, keyPassword);
 
-        java.security.cert.Certificate cert = keyStore.getCertificate("mykey");
+        java.security.cert.Certificate cert = keyStore.getCertificate(alias);
         PublicKey publicKey = cert.getPublicKey();
         PrivateKey privateKey = privateKeyEntry.getPrivateKey();
 
@@ -56,24 +57,5 @@ public class RSA {
         return new String(decryptCipher.doFinal(bytes), UTF_8);
     }
 
-    public static String sign(String plainText, PrivateKey privateKey) throws Exception {
-        Signature privateSignature = Signature.getInstance("SHA256withRSA");
-        privateSignature.initSign(privateKey);
-        privateSignature.update(plainText.getBytes(UTF_8));
-
-        byte[] signature = privateSignature.sign();
-
-        return Base64.getEncoder().encodeToString(signature);
-    }
-
-    public static boolean verify(String plainText, String signature, PublicKey publicKey) throws Exception {
-        Signature publicSignature = Signature.getInstance("SHA256withRSA");
-        publicSignature.initVerify(publicKey);
-        publicSignature.update(plainText.getBytes(UTF_8));
-
-        byte[] signatureBytes = Base64.getDecoder().decode(signature);
-
-        return publicSignature.verify(signatureBytes);
-    }
 
 }
