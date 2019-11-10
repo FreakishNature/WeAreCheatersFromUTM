@@ -1,8 +1,7 @@
 package com.UDP;
 
 import com.security.ByteConverter;
-import com.security.CryptoConverterShaRsa;
-import com.security.PacketProcessor;
+import com.security.CryptoConverter;
 import com.security.PacketProcessor;
 import com.security.Request;
 
@@ -13,12 +12,12 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
-public class EchoServer {
+public class Server {
 
     private DatagramSocket socket;
     private byte[] buf = new byte[1024];
 
-    public EchoServer(int port) throws SocketException {
+    public Server(int port) throws SocketException {
         socket = new DatagramSocket(port);
     }
     private byte[] preparePacket(String msg){
@@ -40,7 +39,7 @@ public class EchoServer {
             String received
                     = new String(packet.getData(), 0, packet.getLength());
 
-            String packetDecrypted = CryptoConverterShaRsa
+            String packetDecrypted = CryptoConverter
                     .decrypt(ByteConverter.toString(buf));
 
             assert packetDecrypted != null;

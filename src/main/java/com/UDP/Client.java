@@ -1,17 +1,14 @@
 package com.UDP;
 
-import com.security.ByteConverter;
-import com.security.CryptoConverterShaRsa;
 import com.security.PacketProcessor;
 
 import java.io.IOException;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
-import java.util.Objects;
 
-public class EchoClient {
+public class Client {
     public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
-        EchoClient client = new EchoClient("localhost",4000);
+        Client client = new Client("localhost",4000);
         System.out.println(client.sendEcho("hello"));
     }
     private DatagramSocket socket;
@@ -20,7 +17,7 @@ public class EchoClient {
     private byte[] buf;
 
 
-    public EchoClient(String host,int port) throws SocketException, UnknownHostException {
+    public Client(String host, int port) throws SocketException, UnknownHostException {
         this.port = port;
         socket = new DatagramSocket();
         address = InetAddress.getByName(host);

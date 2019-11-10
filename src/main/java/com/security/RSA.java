@@ -7,7 +7,11 @@ import java.util.Base64;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class CryptoShaRsa {
+/**
+ * Key generated with:
+ * keytool -genkeypair -alias mykey -storepass s3cr3t -keypass s3cr3t -keyalg RSA -keystore keystore.jks
+ */
+public class RSA {
     public static KeyPair generateKeyPair() throws Exception {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048, new SecureRandom());
@@ -16,11 +20,9 @@ public class CryptoShaRsa {
         return pair;
     }
 
-    public static KeyPair getKeyPairFromKeyStore() throws Exception {
-        //Generated with:
-        //  keytool -genkeypair -alias mykey -storepass s3cr3t -keypass s3cr3t -keyalg RSA -keystore keystore.jks
+    public static KeyPair getKeyPair() throws Exception {
 
-        InputStream ins = CryptoShaRsa.class.getResourceAsStream("/keystore.jks");
+        InputStream ins = RSA.class.getResourceAsStream("/keystore.jks");
 
         KeyStore keyStore = KeyStore.getInstance("JCEKS");
         keyStore.load(ins, "s3cr3t".toCharArray());   //Keystore password
@@ -48,10 +50,10 @@ public class CryptoShaRsa {
     public static String decrypt(String cipherText, PrivateKey privateKey) throws Exception {
         byte[] bytes = Base64.getDecoder().decode(cipherText);
 
-        Cipher decriptCipher = Cipher.getInstance("RSA");
-        decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
+        Cipher decryptCipher = Cipher.getInstance("RSA");
+        decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 
-        return new String(decriptCipher.doFinal(bytes), UTF_8);
+        return new String(decryptCipher.doFinal(bytes), UTF_8);
     }
 
     public static String sign(String plainText, PrivateKey privateKey) throws Exception {
@@ -72,36 +74,6 @@ public class CryptoShaRsa {
         byte[] signatureBytes = Base64.getDecoder().decode(signature);
 
         return publicSignature.verify(signatureBytes);
-    }
-
-    public static void main(String... argv) throws Exception {
-        //First generate a public/private key pair
-//        KeyPair pair = generateKeyPair();
-        KeyPair pair = getKeyPairFromKeyStore();
-
-        //Our secret message
-        String message = "abcdefe";
-
-        //Encrypt the message
-        String cipherText = encrypt(message, pair.getPublic());
-        System.out.println("1 - " + cipherText);
-        cipherText = encrypt(message, pair.getPublic());
-        System.out.println("2 - " + cipherText);
-
-
-        //Now decrypt it
-        String decipheredMessage = decrypt(cipherText, pair.getPrivate());
-        System.out.println(decipheredMessage);
-
-
-//        System.out.println(decipheredMessage);
-//
-//        //Let's sign our message
-//        String signature = sign("foobar", pair.getPrivate());
-//
-//        //Let's check the signature
-//        boolean isCorrect = verify("foobar", signature, pair.getPublic());
-//        System.out.println("Signature correct: " + isCorrect);
     }
 
 }
