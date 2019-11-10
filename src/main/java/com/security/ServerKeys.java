@@ -3,7 +3,6 @@ package com.security;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Base64;
 
 public class ServerKeys {
     static public PrivateKey rsaPrivateKey;
@@ -15,13 +14,13 @@ public class ServerKeys {
 
     static {
         try {
-            rsaPrivateKey = RSA.getKeyPair().getPrivate();
-            dsaPrivateKey = DSA.generateKeyPair(999).getPrivate();
+            rsaPrivateKey = RSA.getKeyPair("/rsaServerKeys.jks", "s3cr3t", "s3cr3t", "mykey").getPrivate();
+            dsaPrivateKey = DSA.generateKeyPair(900).getPrivate();
 
-            rsaPublicKey = RSA.getKeyPair().getPublic();
-            dsaPublicKey = DSA.generateKeyPair(999).getPublic();
+            rsaPublicKey = RSA.getKeyPair("/rsaServerKeys.jks", "s3cr3t", "s3cr3t", "mykey").getPublic();
+            dsaPublicKey = DSA.generateKeyPair(900).getPublic();
 
-            aesKey = AES.getSecretKey();
+            aesKey = AES.getSecretKey("/aesServerKey.jck", "mystorepass", "mykeypass", "myseckey");
 
         } catch (Exception e) {
             e.printStackTrace();

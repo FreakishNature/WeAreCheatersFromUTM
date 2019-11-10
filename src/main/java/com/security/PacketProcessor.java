@@ -1,6 +1,5 @@
 package com.security;
 
-import com.UDP.Server;
 import com.model.EncryptedData;
 import com.model.Request;
 import com.utils.ByteConverter;
@@ -16,7 +15,7 @@ public class PacketProcessor {
     private static String separator = "<|>";
     private static String separatorRegex = "<\\|>";
 
-    public static byte[] preparePacket(String msg,int attempt,Keys keys) throws NoSuchAlgorithmException, IOException {
+    public static byte[] preparePacket(String msg, int attempt, Keys keys) throws NoSuchAlgorithmException, IOException {
         String hashSum = CryptoConverter.getHashSum(msg);
         EncryptedData encryptedData = CryptoConverter.encrypt(msg, keys.aesKey, keys.rsaPublicKey, keys.dsaPrivateKey);
 
@@ -28,19 +27,19 @@ public class PacketProcessor {
     }
 
 
-
     public static boolean validatePacket(Request request) throws NoSuchAlgorithmException {
         return CryptoConverter.getHashSum(request.getMessage()).equals(request.getHashSum());
     }
 
-    public static Request requestFromPacket(String packet){
+    public static Request requestFromPacket(String packet) {
         String[] packetSplitted = packet.split(separatorRegex);
         return new Request(packetSplitted[0], packetSplitted[1], Integer.parseInt(packetSplitted[2]));
     }
 
     public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message) throws IOException, NoSuchAlgorithmException {
-        validateAndSend(socket,request,packet,message,0);
+        validateAndSend(socket, request, packet, message, 0);
     }
+
     public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message, int errorAttempt) throws NoSuchAlgorithmException, IOException {
 //        boolean isValidCheckSum = PacketProcessor.validatePacket(request);
 //
@@ -55,7 +54,7 @@ public class PacketProcessor {
 
     }
 
-    public static Request receiveAndDecrypt(DatagramSocket socket,DatagramPacket packet,byte[] buf,Keys keys) throws IOException, ClassNotFoundException {
+    public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, byte[] buf, Keys keys) throws IOException, ClassNotFoundException {
         socket.receive(packet);
 
         InetAddress address = packet.getAddress();
@@ -65,20 +64,20 @@ public class PacketProcessor {
         String received
                 = new String(packet.getData(), 0, packet.getLength());
 
-        return unpackPacket(received,keys);
+        return unpackPacket(received, keys);
     }
 
-    public static Request unpackPacket(String received,Keys keys) throws IOException, ClassNotFoundException {
+    public static Request unpackPacket(String received, Keys keys) throws IOException, ClassNotFoundException {
         String[] receivedSplit = received.split(separatorRegex);
 
         String hashSum = receivedSplit[0];
         EncryptedData encryptedData = (EncryptedData) Serialization.fromString(receivedSplit[1]);
-        String message = CryptoConverter.decrypt(encryptedData,keys.rsaPrivateKey,keys.dsaPublicKey);
+        String message = CryptoConverter.decrypt(encryptedData, keys.rsaPrivateKey, keys.dsaPublicKey);
 
 
         int attempt = Integer.parseInt(receivedSplit[2]);
 
-        return new Request(hashSum,message,attempt);
+        return new Request(hashSum, message, attempt);
     }
 
 }

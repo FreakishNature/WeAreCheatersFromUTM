@@ -28,8 +28,6 @@ public class Server {
     }
 
 
-
-
     public void run() throws IOException, NoSuchAlgorithmException {
     }
 

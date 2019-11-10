@@ -3,6 +3,7 @@ package com.security;
 import java.security.*;
 import java.util.Base64;
 
+
 public class DSA {
     public static KeyPair generateKeyPair(long seed) throws Exception {
         KeyPairGenerator keyGenerator = KeyPairGenerator.getInstance("DSA");

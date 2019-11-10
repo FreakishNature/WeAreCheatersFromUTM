@@ -14,11 +14,13 @@ public class ClientKeys {
 
     static {
         try {
-            rsaPrivateKey = RSA.getKeyPair().getPrivate();
-            rsaPublicKey = RSA.getKeyPair().getPublic();
-            dsaPrivateKey = DSA.generateKeyPair(999).getPrivate();
-            dsaPublicKey = DSA.generateKeyPair(999).getPublic();
-            aesKey = AES.getSecretKey();
+            rsaPrivateKey = RSA.getKeyPair("/rsaClientKeys.jks", "s3cr3tclient", "s3cr3tclient", "mykeyclient").getPrivate();
+            dsaPrivateKey = DSA.generateKeyPair(1000).getPrivate();
+
+            rsaPublicKey = RSA.getKeyPair("/rsaClientKeys.jks", "s3cr3tclient", "s3cr3tclient", "mykeyclient").getPublic();
+            dsaPublicKey = DSA.generateKeyPair(1000).getPublic();
+
+            aesKey = AES.getSecretKey("/aesClientKey.jck", "mystorepassclient", "mykeypassclient", "myseckeyclient");
 
         } catch (Exception e) {
             e.printStackTrace();
