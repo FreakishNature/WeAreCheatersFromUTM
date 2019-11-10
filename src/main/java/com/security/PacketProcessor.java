@@ -14,18 +14,18 @@ public class PacketProcessor {
     private static String separatorRegex = "<\\|>";
 
     public static byte[] preparePacket(String msg,int attempt) throws NoSuchAlgorithmException {
-        String hashSum = CryptoConverterShaRsa.getHashSum(msg);
+        String hashSum = CryptoConverter.getHashSum(msg);
         String packetNonEncrypted = hashSum  + separator + msg + separator + attempt;
         return ByteConverter
                 .toByteArray(
-                        Objects.requireNonNull(CryptoConverterShaRsa
+                        Objects.requireNonNull(CryptoConverter
                                 .encrypt(packetNonEncrypted)
                         )
                 );
     }
 
     public static boolean validatePacket(Request request) throws NoSuchAlgorithmException {
-        return CryptoConverterShaRsa.getHashSum(request.getMessage()).equals(request.getHashSum());
+        return CryptoConverter.getHashSum(request.getMessage()).equals(request.getHashSum());
     }
 
     public static Request requestFromPacket(String packet){
