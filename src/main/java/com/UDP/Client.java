@@ -75,9 +75,6 @@ public class Client {
     }
 
     public static void main(String[] args) {
-
-//        Arrays.asList(bytes)
-//
-//        System.out.println(l.subList(0,1));
+        System.out.println("{key}".substring(1,"{key}".length() - 1));
     }
 }

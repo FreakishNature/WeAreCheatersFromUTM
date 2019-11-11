@@ -38,14 +38,39 @@ public class Application {
                 200
         ));
 
-        requestProcessor.addController("GET","/data",request -> new HttpLikeResponseModel(
-                    new HashMap<>(),
-                    mapper.writeValueAsString(data.get(request.getBody())),
-                    "Ok.",
-                    200
-            )
+        requestProcessor.addController("GET","/data/{key}",request -> new HttpLikeResponseModel(
+                        new HashMap<>(),
+                        mapper.writeValueAsString(data.get(request.getPathVariable("key"))),
+                        "Ok.",
+                        200
+                )
         );
 
+        requestProcessor.addController("CHANGE","/data/{key}",request ->
+            {
+                DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
+                data.put(request.getPathVariable("key"),dataRequest.getData());
+
+                return new HttpLikeResponseModel(
+                        new HashMap<>(),
+                        "",
+                        "Accepted.",
+                        204
+                );
+            }
+        );
+
+        requestProcessor.addController("DELETE","/data/{key}",request ->
+                {
+                    data.remove(request.getPathVariable("key"));
+                    return new HttpLikeResponseModel(
+                            new HashMap<>(),
+                            "",
+                            "Accepted.",
+                            204
+                    );
+                }
+        );
         new Server(4000, requestProcessor).run();
     }
 }

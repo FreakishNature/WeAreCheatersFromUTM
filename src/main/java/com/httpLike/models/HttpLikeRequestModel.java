@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 @AllArgsConstructor
@@ -22,6 +23,7 @@ public class HttpLikeRequestModel {
     String method;
     HashMap<String, String> headers;
     String body;
+    HashMap<String,String> pathVariables;
 
     public HttpLikeRequestModel(String route, String method, HashMap<String, String> headers, String body) {
         this.route = route;
@@ -29,6 +31,15 @@ public class HttpLikeRequestModel {
         this.headers = headers;
         this.body = body;
     }
+
+    public HttpLikeRequestModel(String protocol, String route, String method, HashMap<String, String> headers, String body) {
+        this.protocol = protocol;
+        this.route = route;
+        this.method = method;
+        this.headers = headers;
+        this.body = body;
+    }
+
     public String toString() {
         try {
             return mapper.writeValueAsString(this);
@@ -37,4 +48,7 @@ public class HttpLikeRequestModel {
         }
     }
 
+    public String getPathVariable(String variable){
+        return pathVariables.get(variable);
+    }
 }
