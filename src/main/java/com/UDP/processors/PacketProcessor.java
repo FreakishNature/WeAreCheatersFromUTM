@@ -76,7 +76,7 @@ public class PacketProcessor {
                 chunks.add(ByteConverter.toString(buf));
             } else { isReceiving = false; }
 
-                buf = new byte[2048];
+            buf = new byte[2048];
 
             InetAddress address = packet.getAddress();
             int port = packet.getPort();
@@ -90,7 +90,7 @@ public class PacketProcessor {
 
         chunks.forEach(chunk -> {
             String[] splitChunk = chunk.split("<>");
-
+            logger.debug(chunk);
             int index = Integer.parseInt(splitChunk[0]);
             String chunkData = splitChunk[1];
             chunksSorted.set(index,chunkData);
@@ -104,30 +104,28 @@ public class PacketProcessor {
 
         for(int i = 0 ; i < splitText.size() ; i++){
             String index = (i+"");
-            splitText.set(i,new String(new char[6 - index.length()]).replace('\0','0') + index + "<>" + splitText.get(i));
+            splitText.set(i, new String(new char[6 - index.length()]).replace('\0','0') + index + "<>" + splitText.get(i));
         }
 
 
         for(int i = 0 ; i < (buf.length % 2048) + 1; i++){
             byte[] tmp = ByteConverter.toByteArray(splitText.get(i));
-            logger.debug("Sending index - " + i);
-
+            logger.info("Sending index - " + i);
+            logger.debug("Sending data - " + ByteConverter.toString(tmp));
             packet.setData(tmp);
             socket.send(packet);
         }
 
-//        packet.setLength(0);
         packet.setData(new byte[0]);
         socket.send(packet);
+
+        // returning buffer to standard
+        buf = new byte[2048];
+        packet.setData(buf);
     }
 
-    public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, byte[] buf, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
-//        socket.receive(packet);
-//
-//        InetAddress address = packet.getAddress();
-//        int port = packet.getPort();
-//        packet = new DatagramPacket(buf, buf.length, address, port);
-
+    public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
+        byte[] buf = packet.getData();
         String received = receivePacketByChunks(packet,socket,buf);
 
         logger.debug("Received data : " + received);

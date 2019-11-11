@@ -17,6 +17,7 @@ public class Client {
         HttpLikeClient client = new HttpLikeClient("localhost",4000);
         System.out.println(client.send("POST", "/data", mapper.writeValueAsString(new DataRequest("1", "wooow"))));
         System.out.println(client.send("GET", "/data", ""));
+        System.out.println(client.send("GET", "/data", "1"));
 
     }
 }

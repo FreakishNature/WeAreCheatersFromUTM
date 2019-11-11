@@ -46,7 +46,7 @@ public class Server {
 //                new Thread(()->{
                     Request request;
                     try {
-                        request = PacketProcessor.receiveAndDecrypt(socket, packet, buf, keyStorage);
+                        request = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
 
                         PacketProcessor.validateAndSend(
                                 socket,

@@ -38,6 +38,14 @@ public class Application {
                 200
         ));
 
+        requestProcessor.addController("GET","/data",request -> new HttpLikeResponseModel(
+                    new HashMap<>(),
+                    mapper.writeValueAsString(data.get(request.getBody())),
+                    "Ok.",
+                    200
+            )
+        );
+
         new Server(4000, requestProcessor).run();
     }
 }

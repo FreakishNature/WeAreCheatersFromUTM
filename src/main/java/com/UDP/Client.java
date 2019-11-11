@@ -47,12 +47,14 @@ public class Client {
         logger.info("Sending packet to server");
 //        socket.send(packet);
         PacketProcessor.sendPacketByChunks(packet,socket,buf);
+//        buf = new byte[2048];
+//        packet.setData(buf);
         logger.info("Waiting for server response");
         String responseMsg;
 
         try {
 
-            Request request = PacketProcessor.receiveAndDecrypt(socket, packet, buf, keyStorage);
+            Request request = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
             logger.info("Response received");
             responseMsg = request.getMessage();
 
