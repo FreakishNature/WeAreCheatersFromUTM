@@ -2,7 +2,7 @@ package com.UDP;
 
 import com.UDP.processors.PacketProcessor;
 import com.UDP.processors.ResponseProcessor;
-import com.UDP.models.Request;
+import com.UDP.models.ReqRespEntity;
 import com.security.keys.ClientKeys;
 import com.security.keys.KeyStorage;
 import com.security.keys.ServerKeys;
@@ -34,7 +34,7 @@ public class Server {
         this.requestProcessor = requestProcessor;
     }
 
-    public void run() throws IOException, ClassNotFoundException, NoSuchAlgorithmException {
+    public void run() {
         logger.info("Server started");
         try {
             while (true) {
@@ -43,22 +43,20 @@ public class Server {
                 DatagramPacket packet
                         = new DatagramPacket(buf, buf.length);
 
-//                new Thread(()->{
-                    Request request;
-                    try {
-                        request = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
+                ReqRespEntity reqRespEntity;
+                try {
+                    reqRespEntity = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
 
-                        PacketProcessor.validateAndSend(
-                                socket,
-                                request,
-                                packet,
-                                requestProcessor.processResponse(request.getMessage()),
-                                keyStorage
-                        );
-                    } catch (IOException | NoSuchAlgorithmException | ClassNotFoundException e) {
-                        e.printStackTrace();
-                    }
-//                }).start();
+                    PacketProcessor.validateAndSend(
+                            socket,
+                            reqRespEntity,
+                            packet,
+                            requestProcessor.processResponse(reqRespEntity.getMessage()),
+                            keyStorage
+                    );
+                } catch (IOException | NoSuchAlgorithmException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
 
             }
         } finally {

@@ -1,6 +1,6 @@
-package appOnTopOfEverything;
+package com.app;
 
-import appOnTopOfEverything.model.DataRequest;
+import com.app.model.DataRequest;
 import com.UDP.Server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.httpLike.models.HttpLikeResponseModel;

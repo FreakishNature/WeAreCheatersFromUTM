@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Getter
 @Setter
-public class Request {
+public class ReqRespEntity {
     private String hashSum;
     private String message;
     private int attempt;

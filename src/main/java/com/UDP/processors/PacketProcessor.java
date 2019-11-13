@@ -2,11 +2,11 @@ package com.UDP.processors;
 
 import com.UDP.Server;
 import com.UDP.exceptions.ServerException;
+import com.UDP.models.ReqRespEntity;
 import com.google.common.base.Splitter;
-import com.security.models.EncryptedData;
-import com.UDP.models.Request;
 import com.security.SecurityManager;
 import com.security.keys.KeyStorage;
+import com.security.models.EncryptedData;
 import com.utils.ByteConverter;
 import com.utils.Serialization;
 import org.apache.log4j.Logger;
@@ -17,9 +17,6 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class PacketProcessor {
     private static Logger logger = Logger.getLogger(PacketProcessor.class.getName());
@@ -33,6 +30,11 @@ public class PacketProcessor {
         EncryptedData encryptedData = SecurityManager.encrypt(msg, keyStorage.getAesKey(), keyStorage.getRsaPublicKey(), keyStorage.getDsaPrivateKey());
         logger.info("Date encrypted.");
 
+        logger.debug("Prepared packet:" +
+                "\n\tPacket hash sum : " + hashSum +
+                "\n\tPacket message : " + msg +
+                "\n\tPacket attempt : " + attempt);
+
         String serverPacket = hashSum + separator +
                 Serialization.toString(encryptedData) + separator +
                 attempt;
@@ -43,38 +45,41 @@ public class PacketProcessor {
     }
 
 
-    public static boolean validatePacket(Request request) throws NoSuchAlgorithmException {
+    public static boolean validatePacket(ReqRespEntity reqRespEntity) throws NoSuchAlgorithmException {
         logger.info("Checking if hash sum is valid");
-        boolean isValidPacket = SecurityManager.getHashSum(request.getMessage()).equals(request.getHashSum());
-        if(!isValidPacket){
+        boolean isValidPacket = SecurityManager.getHashSum(reqRespEntity.getMessage()).equals(reqRespEntity.getHashSum());
+        if (!isValidPacket) {
             logger.warn("Hash sum is not valid");
         }
         return isValidPacket;
     }
 
-    public static Request requestFromPacket(String packet) {
+    public static ReqRespEntity requestFromPacket(String packet) {
         String[] packetSplit = packet.split(separatorRegex);
-        return new Request(packetSplit[0], packetSplit[1], Integer.parseInt(packetSplit[2]));
+        return new ReqRespEntity(packetSplit[0], packetSplit[1], Integer.parseInt(packetSplit[2]));
     }
 
-    public static void validateAndSend(DatagramSocket socket, Request request, DatagramPacket packet, String message, KeyStorage keyStorage) throws NoSuchAlgorithmException, IOException {
-        boolean isValidCheckSum = PacketProcessor.validatePacket(request);
+    public static void validateAndSend(DatagramSocket socket, ReqRespEntity reqRespEntity, DatagramPacket packet, String message, KeyStorage keyStorage) throws NoSuchAlgorithmException, IOException {
+        boolean isValidCheckSum = PacketProcessor.validatePacket(reqRespEntity);
 
         byte[] buf = !isValidCheckSum
-                ? PacketProcessor.preparePacket(Server.errorMessage,0, keyStorage)
-                : PacketProcessor.preparePacket(message,0, keyStorage);
+                ? PacketProcessor.preparePacket(Server.errorMessage, 1, keyStorage)
+                : PacketProcessor.preparePacket(message, 1, keyStorage);
 
-        sendPacketByChunks(packet,socket,buf);
+        sendPacketByChunks(packet, socket, buf);
     }
-    public static String receivePacketByChunks(DatagramPacket packet, DatagramSocket socket,byte[] buf) throws IOException {
+
+    public static String receivePacketByChunks(DatagramPacket packet, DatagramSocket socket, byte[] buf) throws IOException {
         ArrayList<String> chunks = new ArrayList<>();
 
         boolean isReceiving = true;
-        do{
+        do {
             socket.receive(packet);
-            if(packet.getLength() != 0){
+            if (packet.getLength() != 0) {
                 chunks.add(ByteConverter.toString(buf));
-            } else { isReceiving = false; }
+            } else {
+                isReceiving = false;
+            }
 
             buf = new byte[2048];
 
@@ -83,7 +88,7 @@ public class PacketProcessor {
             packet = new DatagramPacket(buf, buf.length, address, port);
             logger.info("Received message from " + address + ":" + port);
 
-        }while(isReceiving);
+        } while (isReceiving);
 
         ArrayList<String> chunksSorted = new ArrayList<>(chunks.size());
         chunks.forEach(c -> chunksSorted.add(""));
@@ -93,22 +98,23 @@ public class PacketProcessor {
             logger.debug(chunk);
             int index = Integer.parseInt(splitChunk[0]);
             String chunkData = splitChunk[1];
-            chunksSorted.set(index,chunkData);
+            chunksSorted.set(index, chunkData);
         });
 
         return String.join("", chunksSorted);
     }
-    public static void sendPacketByChunks(DatagramPacket packet, DatagramSocket socket,byte[] buf) throws IOException {
+
+    public static void sendPacketByChunks(DatagramPacket packet, DatagramSocket socket, byte[] buf) throws IOException {
         ArrayList<String> splitText = new ArrayList<>();
         Splitter.fixedLength(2048 - 8).split(ByteConverter.toString(buf)).forEach(splitText::add);
 
-        for(int i = 0 ; i < splitText.size() ; i++){
-            String index = (i+"");
-            splitText.set(i, new String(new char[6 - index.length()]).replace('\0','0') + index + "<>" + splitText.get(i));
+        for (int i = 0; i < splitText.size(); i++) {
+            String index = (i + "");
+            splitText.set(i, new String(new char[6 - index.length()]).replace('\0', '0') + index + "<>" + splitText.get(i));
         }
 
 
-        for(int i = 0 ; i < (buf.length % 2048) + 1; i++){
+        for (int i = 0; i < (buf.length % 2048) + 1; i++) {
             byte[] tmp = ByteConverter.toByteArray(splitText.get(i));
             logger.info("Sending index - " + i);
             logger.debug("Sending data - " + ByteConverter.toString(tmp));
@@ -124,9 +130,9 @@ public class PacketProcessor {
         packet.setData(buf);
     }
 
-    public static Request receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
+    public static ReqRespEntity receiveAndDecrypt(DatagramSocket socket, DatagramPacket packet, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
         byte[] buf = packet.getData();
-        String received = receivePacketByChunks(packet,socket,buf);
+        String received = receivePacketByChunks(packet, socket, buf);
 
         logger.debug("Received data : " + received);
         logger.info("Unpacking packet");
@@ -134,12 +140,12 @@ public class PacketProcessor {
         return unpackPacket(received, keyStorage);
     }
 
-    public static Request unpackPacket(String received, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
+    public static ReqRespEntity unpackPacket(String received, KeyStorage keyStorage) throws IOException, ClassNotFoundException {
         String[] receivedSplit = received.trim().split(separatorRegex);
-        Request request;
+        ReqRespEntity reqRespEntity;
 
-        try{
-            request  = new Request(
+        try {
+            reqRespEntity = new ReqRespEntity(
                     receivedSplit[0], // hash sum
                     SecurityManager.decrypt(
                             (EncryptedData) Serialization.fromString(receivedSplit[1]),
@@ -148,15 +154,16 @@ public class PacketProcessor {
                     ), // decrypted data
                     Integer.parseInt(receivedSplit[2]) // attempt
             );
-        }catch (IndexOutOfBoundsException | NumberFormatException e){
+        } catch (IndexOutOfBoundsException | NumberFormatException e) {
             throw ServerException.receivingResponseException();
         }
 
-        logger.debug("\n\tRequest hash sum : " + request.getHashSum() +
-                "\n\tRequest decrypted message : " + request.getMessage() +
-                "\n\tRequest attempt : " + request.getAttempt());
+        logger.debug("Unpacked packet:" +
+                "\n\tPacket hash sum : " + reqRespEntity.getHashSum() +
+                "\n\tPacket decrypted message : " + reqRespEntity.getMessage() +
+                "\n\tPacket attempt : " + reqRespEntity.getAttempt());
 
-        return request;
+        return reqRespEntity;
     }
 
 }

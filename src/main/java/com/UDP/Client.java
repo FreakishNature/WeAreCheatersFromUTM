@@ -1,20 +1,15 @@
 package com.UDP;
 
 import com.UDP.exceptions.ServerException;
+import com.UDP.models.ReqRespEntity;
 import com.UDP.processors.PacketProcessor;
-import com.UDP.models.Request;
-import com.UDP.processors.RequestProcessor;
-import com.UDP.processors.ResponseProcessor;
 import com.security.keys.ClientKeys;
 import com.security.keys.KeyStorage;
 import com.security.keys.ServerKeys;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.net.*;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Logger;
 
 public class Client {
@@ -45,20 +40,17 @@ public class Client {
                 = new DatagramPacket(buf, buf.length, address, this.port);
 
         logger.info("Sending packet to server");
-//        socket.send(packet);
-        PacketProcessor.sendPacketByChunks(packet,socket,buf);
-//        buf = new byte[2048];
-//        packet.setData(buf);
+        PacketProcessor.sendPacketByChunks(packet, socket, buf);
         logger.info("Waiting for server response");
         String responseMsg;
 
         try {
 
-            Request request = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
+            ReqRespEntity reqRespEntity = PacketProcessor.receiveAndDecrypt(socket, packet, keyStorage);
             logger.info("Response received");
-            responseMsg = request.getMessage();
+            responseMsg = reqRespEntity.getMessage();
 
-            if (request.getMessage().equals(Server.errorMessage) || !PacketProcessor.validatePacket(request)) {
+            if (reqRespEntity.getMessage().equals(Server.errorMessage) || !PacketProcessor.validatePacket(reqRespEntity)) {
                 throw ServerException.receivingResponseException();
             }
 
@@ -74,7 +66,4 @@ public class Client {
         return responseMsg;
     }
 
-    public static void main(String[] args) {
-        System.out.println("{key}".substring(1,"{key}".length() - 1));
-    }
 }

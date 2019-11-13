@@ -1,4 +1,4 @@
-package appOnTopOfEverything.model;
+package com.app.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
