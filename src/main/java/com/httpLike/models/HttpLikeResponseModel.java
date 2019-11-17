@@ -2,22 +2,18 @@ package com.httpLike.models;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.httpLike.processors.HttpLikeProcessorServer;
-import lombok.AllArgsConstructor;
+import com.httpLike.processors.HttpLikeProcessor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.HashMap;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class HttpLikeResponseModel {
     private static ObjectMapper mapper = new ObjectMapper();
-    private String protocol = HttpLikeProcessorServer.getHttpLikeVersion();
-    HashMap<String, String> headers;
+    private String protocol = HttpLikeProcessor.getHttpLikeVersion();
+    private HashMap<String, String> headers;
     private String body;
     private String message;
     private int code;
@@ -30,10 +26,41 @@ public class HttpLikeResponseModel {
         }
     }
 
-    public HttpLikeResponseModel(HashMap<String, String> headers, String body, String message, int code) {
-        this.headers = headers;
-        this.body = body;
-        this.message = message;
-        this.code = code;
+    private HttpLikeResponseModel() {
+    }
+
+    public static class Builder {
+        private HashMap<String, String> headers;
+        private String body;
+        private String message;
+        private int code;
+
+        public Builder() {
+        }
+
+        public Builder withHeaders(HashMap<String, String> headers){
+            this.headers = headers;
+            return this;
+        }
+        public Builder withBody(String body){
+            this.body = body;
+            return this;
+        }
+        public Builder withMsg(String message){
+            this.message = message;
+            return this;
+        }
+        public Builder withStatusCode(int code){
+            this.code = code;
+            return this;
+        }
+        public HttpLikeResponseModel build(){
+            HttpLikeResponseModel response = new HttpLikeResponseModel();
+            response.headers = this.headers;
+            response.body = this.body;
+            response.message = this.message;
+            response.code = this.code;
+            return response;
+        }
     }
 }

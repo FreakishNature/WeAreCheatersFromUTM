@@ -1,11 +1,9 @@
 package com.UDP;
 
+import com.UDP.models.ReqRespEntity;
 import com.UDP.processors.PacketProcessor;
 import com.UDP.processors.ResponseProcessor;
-import com.UDP.models.ReqRespEntity;
-import com.security.keys.ClientKeys;
 import com.security.keys.KeyStorage;
-import com.security.keys.ServerKeys;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -14,28 +12,29 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.security.NoSuchAlgorithmException;
 
-public class Server {
-    Logger logger = Logger.getLogger(this.getClass().getName());
+public class UdpServer {
+    private static UdpServer server;
     private ResponseProcessor requestProcessor;
-
-    static public KeyStorage keyStorage = new KeyStorage(
-            ServerKeys.rsaPrivateKey,
-            ServerKeys.dsaPrivateKey,
-            ClientKeys.rsaPublicKey,
-            ClientKeys.dsaPublicKey,
-            ServerKeys.aesKey
-    );
+    Logger logger = Logger.getLogger(this.getClass().getName());
+    KeyStorage keyStorage = KeyStorage.getKeys("UdpServer");
 
     public static String errorMessage = "Message was send badly";
     private DatagramSocket socket;
 
-    public Server(int port, ResponseProcessor requestProcessor) throws SocketException {
+    public static synchronized UdpServer getInstance(int port, ResponseProcessor requestProcessor) throws SocketException {
+            if (server == null) {
+            server = new UdpServer(port, requestProcessor);
+        }
+        return server;
+    }
+
+    private UdpServer(int port, ResponseProcessor requestProcessor) throws SocketException {
         socket = new DatagramSocket(port);
         this.requestProcessor = requestProcessor;
     }
 
     public void run() {
-        logger.info("Server started");
+        logger.info("UdpServer started");
         try {
             while (true) {
                 byte[] buf = new byte[2048];

@@ -1,6 +1,6 @@
 package com.UDP.processors;
 
-import com.UDP.Server;
+import com.UDP.UdpServer;
 import com.UDP.exceptions.ServerException;
 import com.UDP.models.ReqRespEntity;
 import com.google.common.base.Splitter;
@@ -63,7 +63,7 @@ public class PacketProcessor {
         boolean isValidCheckSum = PacketProcessor.validatePacket(reqRespEntity);
 
         byte[] buf = !isValidCheckSum
-                ? PacketProcessor.preparePacket(Server.errorMessage, 1, keyStorage)
+                ? PacketProcessor.preparePacket(UdpServer.errorMessage, 1, keyStorage)
                 : PacketProcessor.preparePacket(message, 1, keyStorage);
 
         sendPacketByChunks(packet, socket, buf);

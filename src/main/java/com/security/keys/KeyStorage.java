@@ -1,17 +1,32 @@
 package com.security.keys;
 
+import lombok.Getter;
+
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+@Getter
 public class KeyStorage {
-    PrivateKey rsaPrivateKey;
-    PrivateKey dsaPrivateKey;
-    PublicKey rsaPublicKey;
-    PublicKey dsaPublicKey;
-    SecretKey aesKey;
+    private static ClientKeys clientKeys;
+    private static ServerKeys serverKeys;
 
-    public KeyStorage(PrivateKey rsaPrivateKey, PrivateKey dsaPrivateKey, PublicKey rsaPublicKey, PublicKey dsaPublicKey, SecretKey aesKey) {
+    static {
+        try {
+            clientKeys = new ClientKeys();
+            serverKeys = new ServerKeys();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private PrivateKey rsaPrivateKey;
+    private PrivateKey dsaPrivateKey;
+    private PublicKey rsaPublicKey;
+    private PublicKey dsaPublicKey;
+    private SecretKey aesKey;
+
+    private KeyStorage(PrivateKey rsaPrivateKey, PrivateKey dsaPrivateKey, PublicKey rsaPublicKey, PublicKey dsaPublicKey, SecretKey aesKey) {
         this.rsaPrivateKey = rsaPrivateKey;
         this.dsaPrivateKey = dsaPrivateKey;
         this.rsaPublicKey = rsaPublicKey;
@@ -19,43 +34,33 @@ public class KeyStorage {
         this.aesKey = aesKey;
     }
 
-    public PrivateKey getRsaPrivateKey() {
-        return rsaPrivateKey;
+    //Factory
+    public static KeyStorage getKeys(String type) {
+        KeyStorage keyStorage = null;
+        switch (type) {
+            case "AppClient":
+                keyStorage = new KeyStorage(
+                        clientKeys.getRsaPrivateKey(),
+                        clientKeys.getDsaPrivateKey(),
+                        serverKeys.getRsaPublicKey(),
+                        serverKeys.getDsaPublicKey(),
+                        clientKeys.getAesKey()
+                );
+                break;
+            case "UdpServer":
+                keyStorage = new KeyStorage(
+                        serverKeys.getRsaPrivateKey(),
+                        serverKeys.getDsaPrivateKey(),
+                        clientKeys.getRsaPublicKey(),
+                        clientKeys.getDsaPublicKey(),
+                        serverKeys.getAesKey()
+                );
+                break;
+            default:
+                System.err.println("Wrong key type");
+                break;
+        }
+        return keyStorage;
     }
 
-    public void setRsaPrivateKey(PrivateKey rsaPrivateKey) {
-        this.rsaPrivateKey = rsaPrivateKey;
-    }
-
-    public PrivateKey getDsaPrivateKey() {
-        return dsaPrivateKey;
-    }
-
-    public void setDsaPrivateKey(PrivateKey dsaPrivateKey) {
-        this.dsaPrivateKey = dsaPrivateKey;
-    }
-
-    public PublicKey getRsaPublicKey() {
-        return rsaPublicKey;
-    }
-
-    public void setRsaPublicKey(PublicKey rsaPublicKey) {
-        this.rsaPublicKey = rsaPublicKey;
-    }
-
-    public PublicKey getDsaPublicKey() {
-        return dsaPublicKey;
-    }
-
-    public void setDsaPublicKey(PublicKey dsaPublicKey) {
-        this.dsaPublicKey = dsaPublicKey;
-    }
-
-    public SecretKey getAesKey() {
-        return aesKey;
-    }
-
-    public void setAesKey(SecretKey aesKey) {
-        this.aesKey = aesKey;
-    }
 }

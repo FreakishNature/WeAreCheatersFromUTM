@@ -1,30 +1,25 @@
 package com.httpLike.processors;
 
-import com.UDP.Client;
-import com.UDP.processors.RequestProcessor;
+import com.UDP.ClientDecorator;
+import com.UDP.UdpClient;
 import com.httpLike.models.HttpLikeRequestModel;
 
-import java.io.IOException;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
-public class HttpLikeClient{
-    Client client;
+public class HttpLikeClient extends ClientDecorator {
 
-    public String send(String method,String route,String body) throws NoSuchAlgorithmException, IOException, ClassNotFoundException {
-        HttpLikeRequestModel requestModel = new HttpLikeRequestModel(
-                route,
-                method,
-                new HashMap<>(),
-                body
-        );
+    public String send(String method, String path, String body) {
+        HttpLikeRequestModel requestModel = new HttpLikeRequestModel.Builder()
+                .usingMethod(method)
+                .withHeaders(new HashMap<>())
+                .withBody(body)
+                .withPath(path)
+                .build();
 
-        return client.send(requestModel.toString(),1);
+        return super.send(requestModel.toString(), 1);
     }
 
-    public HttpLikeClient(String host,int port) throws SocketException, UnknownHostException {
-        client = new Client(host,port);
+    public HttpLikeClient(UdpClient udpClient) {
+        super(udpClient);
     }
 }

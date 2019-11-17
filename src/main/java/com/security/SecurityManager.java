@@ -59,19 +59,5 @@ public class SecurityManager {
         return null;
     }
 
-    public static void main(String[] args) {
-        String a = "test server";
-
-        EncryptedData cipherText = encrypt(a, ServerKeys.aesKey, ServerKeys.rsaPublicKey, ServerKeys.dsaPrivateKey);
-        String plainText = decrypt(cipherText, ClientKeys.rsaPrivateKey, ClientKeys.dsaPublicKey);
-        System.out.println(plainText);
-
-        a = "test client";
-
-        cipherText = encrypt(a, ClientKeys.aesKey, ClientKeys.rsaPublicKey, ClientKeys.dsaPrivateKey);
-        plainText = decrypt(cipherText, ServerKeys.rsaPrivateKey, ServerKeys.dsaPublicKey);
-        System.out.println(plainText);
-    }
-
 }
 
