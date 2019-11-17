@@ -50,7 +50,7 @@ public class Client {
             logger.info("Response received");
             responseMsg = reqRespEntity.getMessage();
 
-            if (reqRespEntity.getMessage().equals(Server.errorMessage) || !PacketProcessor.validatePacket(reqRespEntity)) {
+            if (reqRespEntity.getMessage().equals(Server.errorMessage) || PacketProcessor.validatePacket(reqRespEntity)) {
                 throw ServerException.receivingResponseException();
             }
 

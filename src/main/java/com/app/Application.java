@@ -12,16 +12,16 @@ import java.util.HashMap;
 
 public class Application {
 
-    public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
-        HashMap<String,String> data = new HashMap<>();
+        HashMap<String, String> data = new HashMap<>();
 
         HttpLikeProcessorServer requestProcessor = new HttpLikeProcessorServer();
 
-        requestProcessor.addController("POST","/data",request ->{
+        requestProcessor.addController("POST", "/data", request -> {
             DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
-            data.put(dataRequest.getKey(),dataRequest.getData());
+            data.put(dataRequest.getKey(), dataRequest.getData());
 
             return new HttpLikeResponseModel(
                     new HashMap<>(),
@@ -31,14 +31,14 @@ public class Application {
             );
         });
 
-        requestProcessor.addController("GET","/data",request -> new HttpLikeResponseModel(
+        requestProcessor.addController("GET", "/data", request -> new HttpLikeResponseModel(
                 new HashMap<>(),
                 mapper.writeValueAsString(data),
                 "Ok.",
                 200
         ));
 
-        requestProcessor.addController("GET","/data/{key}",request -> new HttpLikeResponseModel(
+        requestProcessor.addController("GET", "/data/{key}", request -> new HttpLikeResponseModel(
                         new HashMap<>(),
                         mapper.writeValueAsString(data.get(request.getPathVariable("key"))),
                         "Ok.",
@@ -46,21 +46,21 @@ public class Application {
                 )
         );
 
-        requestProcessor.addController("CHANGE","/data/{key}",request ->
-            {
-                DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
-                data.put(request.getPathVariable("key"),dataRequest.getData());
+        requestProcessor.addController("CHANGE", "/data/{key}", request ->
+                {
+                    DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
+                    data.put(request.getPathVariable("key"), dataRequest.getData());
 
-                return new HttpLikeResponseModel(
-                        new HashMap<>(),
-                        "",
-                        "Accepted.",
-                        204
-                );
-            }
+                    return new HttpLikeResponseModel(
+                            new HashMap<>(),
+                            "",
+                            "Accepted.",
+                            204
+                    );
+                }
         );
 
-        requestProcessor.addController("DELETE","/data/{key}",request ->
+        requestProcessor.addController("DELETE", "/data/{key}", request ->
                 {
                     data.remove(request.getPathVariable("key"));
                     return new HttpLikeResponseModel(
