@@ -9,17 +9,14 @@ import com.httpLike.models.HttpLikeResponseModel;
 import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HttpLikeProcessor implements ResponseProcessor {
-    private static HttpLikeProcessor server;
+    private static HttpLikeProcessor processor;
     private static ObjectMapper mapper = new ObjectMapper();
     private static String httpLikeVersion = "0.0.0";
-    private static List<String> existingMethods = Arrays.asList("POST", "GET", "CHANGE", "DELETE", "ALL");
 
     private HttpLikeProcessor() {
     }
@@ -28,36 +25,31 @@ public class HttpLikeProcessor implements ResponseProcessor {
         return httpLikeVersion;
     }
 
-    public static synchronized HttpLikeProcessor getInstance() {
-        if (server == null) {
-            server = new HttpLikeProcessor();
+    static synchronized HttpLikeProcessor getInstance() {
+        if (processor == null) {
+            processor = new HttpLikeProcessor();
         }
-        return server;
+        return processor;
     }
 
     private ArrayList<Controller> controllers = new ArrayList<>();
+
+    public void setControllers(ArrayList<Controller> controllers) {
+        this.controllers = controllers;
+    }
 
     @Override
     public String processResponse(String request) {
         HttpLikeRequestModel requestModel;
         try {
             requestModel = mapper.readValue(request, HttpLikeRequestModel.class);
+
         } catch (JsonProcessingException e) {
             return new HttpLikeResponseModel.Builder()
                     .withHeaders(new HashMap<>())
                     .withMsg("Invalid HttpLike format")
                     .withBody(e.getMessage())
                     .withStatusCode(406)
-                    .build()
-                    .toString();
-        }
-
-        if (!existingMethods.contains(requestModel.getMethod())) {
-            return new HttpLikeResponseModel.Builder()
-                    .withHeaders(new HashMap<>())
-                    .withMsg("No such method")
-                    .withBody("Method " + requestModel.getMethod())
-                    .withStatusCode(405)
                     .build()
                     .toString();
         }
@@ -100,7 +92,7 @@ public class HttpLikeProcessor implements ResponseProcessor {
                 } catch (Throwable e) {
                     return new HttpLikeResponseModel.Builder()
                             .withHeaders(new HashMap<>())
-                            .withMsg("Internal server error")
+                            .withMsg("Internal processor error")
                             .withBody(e.getMessage())
                             .withStatusCode(500)
                             .build()
@@ -117,18 +109,5 @@ public class HttpLikeProcessor implements ResponseProcessor {
                 .build()
                 .toString();
     }
-
-    public void addController(Controller controller) {
-        controllers.add(controller);
-    }
-
-    public void addController(String method, String route, HttpLikeRequestProcessor processor) {
-        controllers.add(new Controller(method, route, processor));
-    }
-
-    public void addController(String route, HttpLikeRequestProcessor processor) {
-        controllers.add(new Controller(route, processor));
-    }
-
 
 }

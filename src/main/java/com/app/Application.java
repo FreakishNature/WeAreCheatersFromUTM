@@ -5,6 +5,7 @@ import com.app.model.DataRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.httpLike.models.HttpLikeResponseModel;
 import com.httpLike.processors.HttpLikeProcessor;
+import com.httpLike.processors.HttpLikeProxy;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -16,9 +17,9 @@ public class Application {
 
         HashMap<String, String> data = new HashMap<>();
 
-        HttpLikeProcessor requestProcessor = HttpLikeProcessor.getInstance();
+        HttpLikeProxy httpLikeProxy = HttpLikeProxy.getInstance();
 
-        requestProcessor.addController("POST", "/data", request -> {
+        httpLikeProxy.addController("POST", "/data", request -> {
             DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
             data.put(dataRequest.getKey(), dataRequest.getData());
 
@@ -30,7 +31,7 @@ public class Application {
                     .build();
         });
 
-        requestProcessor.addController("GET", "/data", request -> new HttpLikeResponseModel.Builder()
+        httpLikeProxy.addController("GET", "/data", request -> new HttpLikeResponseModel.Builder()
                 .withHeaders(new HashMap<>())
                 .withMsg("OK")
                 .withBody("")
@@ -38,7 +39,7 @@ public class Application {
                 .build()
         );
 
-        requestProcessor.addController("GET", "/data/{key}", request -> new HttpLikeResponseModel.Builder()
+        httpLikeProxy.addController("GET", "/data/{key}", request -> new HttpLikeResponseModel.Builder()
                 .withHeaders(new HashMap<>())
                 .withMsg("OK")
                 .withBody(mapper.writeValueAsString(data.get(request.getPathVariable("key"))))
@@ -46,7 +47,7 @@ public class Application {
                 .build()
         );
 
-        requestProcessor.addController("CHANGE", "/data/{key}", request ->
+        httpLikeProxy.addController("CHANGE", "/data/{key}", request ->
                 {
                     DataRequest dataRequest = mapper.readValue(request.getBody(), DataRequest.class);
                     data.put(request.getPathVariable("key"), dataRequest.getData());
@@ -60,7 +61,7 @@ public class Application {
                 }
         );
 
-        requestProcessor.addController("DELETE", "/data/{key}", request ->
+        httpLikeProxy.addController("DELETE", "/data/{key}", request ->
                 {
                     data.remove(request.getPathVariable("key"));
                     return new HttpLikeResponseModel.Builder()
@@ -71,6 +72,6 @@ public class Application {
                             .build();
                 }
         );
-        UdpServer.getInstance(4000, requestProcessor).run();
+        UdpServer.getInstance(4000, httpLikeProxy).run();
     }
 }
