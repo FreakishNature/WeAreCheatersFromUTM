@@ -14,7 +14,15 @@ import java.util.logging.Logger;
 @NoArgsConstructor
 public class UdpClient implements Client{
     Logger logger = Logger.getLogger(this.getClass().getName());
-    KeyStorage keyStorage = KeyStorage.getKeys("AppClient");
+    KeyStorage keyStorage;
+
+    {
+        try {
+            keyStorage = KeyStorage.getKeys("AppClient");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     private DatagramSocket socket;
     private InetAddress address;

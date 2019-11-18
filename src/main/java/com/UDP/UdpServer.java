@@ -16,7 +16,15 @@ public class UdpServer {
     private static UdpServer server;
     private ResponseProcessor requestProcessor;
     Logger logger = Logger.getLogger(this.getClass().getName());
-    KeyStorage keyStorage = KeyStorage.getKeys("UdpServer");
+    KeyStorage keyStorage;
+
+    {
+        try {
+            keyStorage = KeyStorage.getKeys("UdpServer");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static String errorMessage = "Message was send badly";
     private DatagramSocket socket;

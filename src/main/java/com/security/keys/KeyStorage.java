@@ -3,6 +3,7 @@ package com.security.keys;
 import lombok.Getter;
 
 import javax.crypto.SecretKey;
+import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
@@ -35,32 +36,27 @@ public class KeyStorage {
     }
 
     //Factory
-    public static KeyStorage getKeys(String type) {
-        KeyStorage keyStorage = null;
+    public static KeyStorage getKeys(String type) throws IOException {
         switch (type) {
             case "AppClient":
-                keyStorage = new KeyStorage(
+                return new KeyStorage(
                         clientKeys.getRsaPrivateKey(),
                         clientKeys.getDsaPrivateKey(),
                         serverKeys.getRsaPublicKey(),
                         serverKeys.getDsaPublicKey(),
                         clientKeys.getAesKey()
                 );
-                break;
             case "UdpServer":
-                keyStorage = new KeyStorage(
+                return new KeyStorage(
                         serverKeys.getRsaPrivateKey(),
                         serverKeys.getDsaPrivateKey(),
                         clientKeys.getRsaPublicKey(),
                         clientKeys.getDsaPublicKey(),
                         serverKeys.getAesKey()
                 );
-                break;
-            default:
-                System.err.println("Wrong key type");
-                break;
         }
-        return keyStorage;
+
+        throw new IOException("No such option");
     }
 
 }
